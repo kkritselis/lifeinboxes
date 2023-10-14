@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Life In Boxes</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.js"></script>
+    <style>
+        #canvasContainer {
+            border: 1px black solid;
+        }
+    </style>
+</head>
+<body>
+    <h1>Life In Boxes</h1>
+    <form id="lifeBoxForm">
+        <label for="userName">Your Name:</label>
+        <input type="text" id="userName" name="userName" placeholder="Your Name">
+
+        <label for="years">Years:</label>
+        <input type="number" id="years" name="years" min="1" max="100" value="1">
+        
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location">
+        
+        <button type="button" onclick="addBox()">Add Box</button>
+    </form>
+    <table id="boxTable">
+        <thead>
+          <tr>
+            <th>Years</th>
+            <th>Location</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows will be added here -->
+        </tbody>
+      </table>
+    <div id="canvasContainer"></div>
+    
+    <button id="downloadButton">Download</button>
+    <button id="shareButton">Share</button>
+
+    <script>
+        // p5.js setup and draw functions will go here
+        let boxes = [];
+
+function setup() {
+  let canvas = createCanvas(1080, 1080);
+  canvas.parent('canvasContainer');
+
+  let savedData = localStorage.getItem('lifeBoxes');
+  if (savedData) {
+    let userData = JSON.parse(savedData);
+    boxes = userData.boxes;
+    document.getElementById('userName').value = userData.userName;
+    populateTable();
+  }
+}
+
+function draw() {
+  background(220);
+  
+  // Draw Title
+  let userName = document.getElementById('userName').value;
+  let title = "My Life In Boxes";
+  if (userName) {
+    title += " - " + userName;
+  }
+  
+  textSize(18);
+  text(title, 10, 30);
+  
+  // Draw Boxes
+  let x = 0;
+  let y = 40;  // Starting y-coordinate moved down to make space for the title
+  let boxSize = 20;  // Square boxes
+  
+  for (const box of boxes) {
+    fill(box.color);
+    stroke(0);  // Black border
+    strokeWeight(4);  // 4-pixel border
+    for (let i = 0; i < box.years; i++) {
+      rect(x, y, boxSize, boxSize);
+      x += boxSize + 4;  // Move x-coordinate for next box (4 pixels for the border)
+    }
+  }
+}
+
+function addBox() {
+  let years = parseInt(document.getElementById('years').value);
+  let location = document.getElementById('location').value;
+  let color = getRandomColor();
+  
+  boxes.push({ years, location, color });
+
+  // Add row to table
+  let table = document.getElementById('boxTable').getElementsByTagName('tbody')[0];
+  let newRow = table.insertRow();
+  
+  let cell1 = newRow.insertCell(0);
+  let cell2 = newRow.insertCell(1);
+  let cell3 = newRow.insertCell(2);
+  
+  cell1.innerHTML = years;
+  cell2.innerHTML = location;
+  cell3.innerHTML = `<button onclick="deleteRow(this, ${boxes.length - 1})">Delete</button>`;
+  
+  redraw();
+  saveToLocalStorage();
+}
+
+function deleteRow(buttonElement, index) {
+  // Delete the row from the table
+  let row = buttonElement.parentNode.parentNode;
+  row.parentNode.removeChild(row);
+  
+  // Remove the box from the array
+  boxes.splice(index, 1);
+  
+  // Redraw the boxes
+  redraw();
+  saveToLocalStorage();
+}
+
+function getRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+function saveToLocalStorage() {
+  let userData = {
+    boxes,
+    userName: document.getElementById('userName').value
+  };
+  localStorage.setItem('lifeBoxes', JSON.stringify(userData));
+}
+
+function populateTable() {
+  for (let i = 0; i < boxes.length; i++) {
+    let box = boxes[i];
+    addRowToTable(box.years, box.location, i);
+  }
+}
+
+function addRowToTable(years, location, index) {
+  let table = document.getElementById('boxTable').getElementsByTagName('tbody')[0];
+  let newRow = table.insertRow();
+  
+  let cell1 = newRow.insertCell(0);
+  let cell2 = newRow.insertCell(1);
+  let cell3 = newRow.insertCell(2);
+  
+  cell1.innerHTML = years;
+  cell2.innerHTML = location;
+  cell3.innerHTML = `<button onclick="deleteRow(this, ${index})">Delete</button>`;
+}
+</script>
+</body>
+</html>
