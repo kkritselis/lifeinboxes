@@ -15,13 +15,14 @@
     <form id="lifeBoxForm">
         <label for="userName">Your Name:</label>
         <input type="text" id="userName" name="userName" placeholder="Your Name">
-
+        <br><Br>
+        <label for="birthYear">Birth Year:</label>
+        <input type="number" id="birthYear" name="birthYear" min="1900" max="2023">
+        <br><Br>
         <label for="years">Years:</label>
         <input type="number" id="years" name="years" min="1" max="100" value="1">
-        
         <label for="location">Location:</label>
         <input type="text" id="location" name="location">
-        
         <button type="button" onclick="addBox()">Add Box</button>
     </form>
     <table id="boxTable">
@@ -54,12 +55,13 @@ function setup() {
     let userData = JSON.parse(savedData);
     boxes = userData.boxes;
     document.getElementById('userName').value = userData.userName;
+    document.getElementById('birthYear').value = userData.birthYear;
     populateTable();
   }
 }
 
 function draw() {
-  background(220);
+  background(256);
   
   // Draw Title
   let userName = document.getElementById('userName').value;
@@ -68,12 +70,13 @@ function draw() {
     title += " - " + userName;
   }
   
-  textSize(18);
-  text(title, 10, 30);
+  strokeWeight(0);  // 4-pixel border
+  textSize(36);
+  text(title, 10, 40);
   
   // Draw Boxes
   let x = 0;
-  let y = 40;  // Starting y-coordinate moved down to make space for the title
+  let y = 60;  // Starting y-coordinate moved down to make space for the title
   let boxSize = 20;  // Square boxes
   
   for (const box of boxes) {
@@ -101,11 +104,13 @@ function addBox() {
   let cell1 = newRow.insertCell(0);
   let cell2 = newRow.insertCell(1);
   let cell3 = newRow.insertCell(2);
-  
+  let cell4 = newRow.insertCell(3);
+
   cell1.innerHTML = years;
   cell2.innerHTML = location;
   cell3.innerHTML = `<button onclick="deleteRow(this, ${boxes.length - 1})">Delete</button>`;
-  
+  cell4.innerHTML = `<input type="color" value="${color}" onchange="updateColor(this, ${index})">`;
+  addRowToTable(years, location, color, boxes.length - 1);
   redraw();
   saveToLocalStorage();
 }
@@ -135,7 +140,8 @@ function getRandomColor() {
 function saveToLocalStorage() {
   let userData = {
     boxes,
-    userName: document.getElementById('userName').value
+    userName: document.getElementById('userName').value,
+    birthYear: document.getElementById('birthYear').value
   };
   localStorage.setItem('lifeBoxes', JSON.stringify(userData));
 }
@@ -143,7 +149,7 @@ function saveToLocalStorage() {
 function populateTable() {
   for (let i = 0; i < boxes.length; i++) {
     let box = boxes[i];
-    addRowToTable(box.years, box.location, i);
+    addRowToTable(box.years, box.location, box.color, i);
   }
 }
 
@@ -154,10 +160,18 @@ function addRowToTable(years, location, index) {
   let cell1 = newRow.insertCell(0);
   let cell2 = newRow.insertCell(1);
   let cell3 = newRow.insertCell(2);
+  let cell4 = newRow.insertCell(3);
   
   cell1.innerHTML = years;
   cell2.innerHTML = location;
   cell3.innerHTML = `<button onclick="deleteRow(this, ${index})">Delete</button>`;
+  cell4.innerHTML = `<input type="color" value="${color}" onchange="updateColor(this, ${index})">`;
+}
+
+function updateColor(colorElement, index) {
+  boxes[index].color = colorElement.value;
+  redraw();
+  saveToLocalStorage();
 }
 </script>
 </body>
