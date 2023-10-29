@@ -7,6 +7,8 @@
     <style>
         #canvasContainer {
             border: 1px black solid;
+            width:700px;
+            height:900px;
         }
     </style>
 </head>
@@ -46,8 +48,8 @@
         // p5.js setup and draw functions will go here
         let boxes = [];
 
-function setup() {
-  let canvas = createCanvas(1080, 1080);
+        function setup() {
+  let canvas = createCanvas(700, 700);
   canvas.parent('canvasContainer');
 
   let savedData = localStorage.getItem('lifeBoxes');
@@ -75,17 +77,35 @@ function draw() {
   text(title, 10, 40);
   
   // Draw Boxes
-  let x = 0;
-  let y = 60;  // Starting y-coordinate moved down to make space for the title
-  let boxSize = 20;  // Square boxes
+  let totalBoxes = boxes.reduce((acc, box) => acc + box.years, 0);  // Total number of boxes
+  let boxSize = 700/(Math.sqrt(totalBoxes)+2);  // New box size
+  let gridSize = Math.ceil(Math.sqrt(totalBoxes));  // Determine grid size
   
+  // Limit grid size to 10x10
+  gridSize = Math.min(gridSize, 10);
+  
+  // Center the grid
+  let gridWidth = gridSize * boxSize;
+  let xOffset = (width - gridWidth) / 2;
+  let yOffset = (height - gridWidth) / 2 + 40;  // Additional 40 pixels to account for the title
+
+  let x = xOffset;
+  let y = yOffset;
+
   for (const box of boxes) {
     fill(box.color);
     stroke(0);  // Black border
     strokeWeight(4);  // 4-pixel border
+
     for (let i = 0; i < box.years; i++) {
       rect(x, y, boxSize, boxSize);
-      x += boxSize + 4;  // Move x-coordinate for next box (4 pixels for the border)
+      
+      // Move to next position
+      x += boxSize;
+      if (x >= xOffset + gridWidth) {
+        x = xOffset;
+        y += boxSize;
+      }
     }
   }
 }
@@ -96,21 +116,9 @@ function addBox() {
   let color = getRandomColor();
   
   boxes.push({ years, location, color });
-
-  // Add row to table
-  let table = document.getElementById('boxTable').getElementsByTagName('tbody')[0];
-  let newRow = table.insertRow();
   
-  let cell1 = newRow.insertCell(0);
-  let cell2 = newRow.insertCell(1);
-  let cell3 = newRow.insertCell(2);
-  let cell4 = newRow.insertCell(3);
-
-  cell1.innerHTML = years;
-  cell2.innerHTML = location;
-  cell3.innerHTML = `<button onclick="deleteRow(this, ${boxes.length - 1})">Delete</button>`;
-  cell4.innerHTML = `<input type="color" value="${color}" onchange="updateColor(this, ${index})">`;
   addRowToTable(years, location, color, boxes.length - 1);
+  
   redraw();
   saveToLocalStorage();
 }
@@ -153,7 +161,7 @@ function populateTable() {
   }
 }
 
-function addRowToTable(years, location, index) {
+function addRowToTable(years, location, color, index) {
   let table = document.getElementById('boxTable').getElementsByTagName('tbody')[0];
   let newRow = table.insertRow();
   
