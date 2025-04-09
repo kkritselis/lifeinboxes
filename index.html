@@ -49,7 +49,7 @@
         let boxes = [];
 
         function setup() {
-  let canvas = createCanvas(700, 700);
+  let canvas = createCanvas(700, 900);
   canvas.parent('canvasContainer');
 
   let savedData = localStorage.getItem('lifeBoxes');
@@ -78,17 +78,17 @@ function draw() {
   
   // Draw Boxes
   let totalBoxes = boxes.reduce((acc, box) => acc + box.years, 0);  // Total number of boxes
-  let boxSize = 700/(Math.sqrt(totalBoxes)+2);  // New box size
+  let boxSize = 600/Math.floor(Math.sqrt(totalBoxes)+1);  // New box size
   let gridSize = Math.ceil(Math.sqrt(totalBoxes));  // Determine grid size
   
   // Limit grid size to 10x10
   gridSize = Math.min(gridSize, 10);
-  
+
   // Center the grid
   let gridWidth = gridSize * boxSize;
   let xOffset = (width - gridWidth) / 2;
   let yOffset = (height - gridWidth) / 2 + 40;  // Additional 40 pixels to account for the title
-
+  console.log("gridsize", gridSize, "boxSize", boxSize, Math.sqrt(totalBoxes)+1);
   let x = xOffset;
   let y = yOffset;
 
@@ -108,6 +108,8 @@ function draw() {
       }
     }
   }
+
+  drawLegend(gridWidth+60);
 }
 
 function addBox() {
@@ -180,6 +182,39 @@ function updateColor(colorElement, index) {
   boxes[index].color = colorElement.value;
   redraw();
   saveToLocalStorage();
+}
+
+function drawLegend(legendY) {
+  // Set the starting position for the legend
+  let x = 10;
+  // let y = height - 40;  // 40 pixels from the bottom of the canvas
+
+  textSize(14);
+  strokeWeight(0);
+
+  // Loop through each unique location and draw its box and name
+  let uniqueLocations = {};
+  for (const box of boxes) {
+    if (!uniqueLocations[box.location]) {
+      uniqueLocations[box.location] = box.color;
+    }
+  }
+  let index = 0;
+  for (const [location, color] of Object.entries(uniqueLocations)) {
+    fill(color);
+    stroke(0);
+    strokeWeight(4);
+    rect(x, legendY, 20, 20);
+    strokeWeight(0);
+    fill(0);  // Set text color to black
+    if (index >3) {
+      text(location, x + 30, legendY + 30);   
+    } else {
+      text(location, x + 30, legendY + 15);
+    }
+    x += textWidth(location) + 60;  // Move x-coordinate for next legend item
+  }
+  index++;
 }
 </script>
 </body>
